@@ -1,20 +1,24 @@
 # Breathing Room
 
-A little room to breathe: an adjustable breathing guide with soft audio cues. Try a short guided session or choose **Own rhythm** for quiet time without a breathing pace to follow.
+A little room to breathe: an adjustable breathing guide with soft audio cues. Choose a guided pattern, observe your natural breath with **Mindful**, or explore the self-paced **Gentle sigh** adaptation.
 
 **[Open the app](https://generalgroovy.github.io/breathing-room/)**
 
 ## Make the practice comfortable
 
-- **Easy by default:** one minute, 3 seconds in and 3 seconds out, with no holds. Even (4 in / 4 out) and Long out (4 in / 6 out) are alternatives, not targets to progress toward.
-- **Own rhythm:** an unpaced timer with a still guide and no inhale, exhale or hold cues. A completion chime follows your sound preference.
-- **Make it yours:** optional Box rhythm and custom inhale/exhale times of 2–6 seconds, with pauses of 0–4 seconds. These are product limits, not medically validated ranges.
-- **1–20 minute sessions.** Guided sessions finish a complete pattern; Own rhythm ends with the timer. **Breathe freely** stops the cues and freezes the guide. Resume when ready, or finish; editing a paused rhythm starts a new session.
+- **Slow & even by default:** 5 seconds in and 5 seconds out, with no holds—six guided cycles per minute. **Longer out** uses 4 in / 6 out; **Box** uses four equal 4-second phases. Choose the pattern that feels comfortable, without treating a slower pace or longer hold as progress.
+- **Mindful:** notice your natural breathing and gently return attention when it wanders. The timer does not prescribe a rhythm.
+- **Gentle sigh:** a self-paced adaptation—a gentle inhale, a small second top-up if comfortable, then an easy longer exhale. Take ordinary breaths whenever needed; there are no prescribed phase seconds or maximum-volume instructions. The app does not claim the outcomes of the original cyclic-sighing research for this adaptation.
+- **A still guide for self-paced techniques**, with no inhale, exhale or hold cues. A completion chime follows your sound preference. Each selected technique has a concise **Guide & research** section.
+- **Make it yours:** custom guided inhale/exhale times of 2–6 seconds, with optional pauses of 0–4 seconds. These are product limits, not medically validated ranges.
+- **1–20 minute sessions, starting at one minute.** Guided sessions finish a complete pattern; self-paced sessions end with the timer. The one-minute default is a convenient starting duration, not a research dose. **Breathe freely** stops the cues and freezes the guide. Resume when ready, or finish; editing a paused rhythm starts a new session.
 - **Quiet synthesized cues** for guided practice: a rising inhale, falling exhale and subtle pause/completion tones. Choose Warm bell or Soft tone, adjust volume, or practise silently.
 - **A readable mobile layout**, keyboard controls, phase announcements and a still display option that respects reduced motion. Phase seconds are hidden unless you choose to show them.
 - **Settings saved on your device** and a session link for sharing a rhythm. No accounts, analytics, remote fonts or runtime dependencies.
 
-Let the guide fit your breathing. You do not need a bigger breath, a slower pace or a longer hold. If matching the guide feels uncomfortable, choose **Breathe freely**, switch to **Own rhythm**, or stop. The orb is a timing illustration, not a target lung volume or a measurement of your breathing.
+Let the guide fit your breathing. You do not need a bigger breath, a slower pace or a longer hold. If matching the guide feels uncomfortable, choose **Breathe freely**, switch to **Mindful**, or stop. The orb is a timing illustration, not a target lung volume or a measurement of your breathing.
+
+Saved legacy Easy 3/3 starter settings migrate once to Slow & even 5/5. Other selected rhythms and device preferences remain; an explicit 3/3 shared link still uses 3/3. Custom timing is still available.
 
 ## Benefits and sources
 
@@ -22,6 +26,7 @@ Breathing practice may help some people manage everyday stress, but research doe
 
 - [NHS: Breathing exercises for stress](https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/) — comfortable, unforced breathing and regular practice.
 - [NCCIH: Relaxation techniques](https://www.nccih.nih.gov/health/relaxation-techniques-what-you-need-to-know) — the evidence, its limitations, and when to discuss symptoms or complementary approaches with a health professional.
+- [NHS: Mindfulness](https://www.nhs.uk/mental-health/self-help/tips-and-support/mindfulness/) — attending to present sensations, including the breath, without needing to change them.
 - [Evidence and design notes](HEALTH.md) — primary research, comfort choices and the limits of the app's claims.
 
 ## Run and check

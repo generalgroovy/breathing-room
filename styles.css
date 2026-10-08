@@ -85,17 +85,22 @@ h2 { font-size: 14px; font-weight: 650; letter-spacing: -.1px; margin: 0; }
 .sound-switch input:checked + .switch-track span { transform: translateX(11px); }
 .sound-switch input:focus-visible + .switch-track { outline: 3px solid #997137; outline-offset: 4px; }
 fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-.pacing-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 3px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 12px; background: #eaece3; }
-.pacing-options button { min-height: 44px; padding: 8px 9px; border: 1px solid transparent; border-radius: 8px; background: transparent; font-size: 13px; font-weight: 600; }
-.pacing-options button[aria-pressed="true"] { background: var(--card); border-color: #b9c6b8; box-shadow: 0 2px 5px #3446350a; }
-.pacing-options button:hover:not(:disabled) { background: #f8faf2; }
-.preset-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+.technique-description { margin: -4px 0 14px; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.preset-list { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; margin-bottom: 13px; }
+.preset-list > .preset { grid-column: span 2; }
+.preset-list > .preset[data-practice] { grid-column: span 3; min-height: 60px; }
 .preset { border: 1px solid var(--line); border-radius: 13px; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 74px; padding: 11px 4px; }
 .preset[aria-pressed="true"] { border-color: var(--accent); background: var(--sage); box-shadow: inset 0 0 0 1px var(--accent); }
 .preset:hover:not(:disabled) { background: #eaf0e3; border-color: #9cb39b; }
 .preset[aria-pressed="true"]:hover:not(:disabled) { border-color: var(--accent); }
 .preset-name { font-weight: 650; font-size: 14px; }
 .preset-timing { font-size: 11px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.preset-hint { color: var(--muted); font-size: 11px; line-height: 1.3; }
+.technique-content { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.technique-content p { margin: 0 0 12px; }
+.technique-content p:last-child { margin-bottom: 0; }
+.technique-links { display: flex; flex-wrap: wrap; gap: 4px 15px; }
+.technique-links a { display: inline-flex; align-items: center; min-height: 44px; line-height: 1.5; }
 .pattern-summary { min-height: 36px; margin: 13px 0 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .holds-note { color: var(--ink); border-left: 2px solid #b99868; padding-left: 10px; font-size: 12px; line-height: 1.6; margin: 0 0 15px; }
 .duration-row, .setting-row { display: flex; justify-content: space-between; align-items: center; gap: 14px; font-size: 13px; }
@@ -112,9 +117,7 @@ details[open] > summary > .summary-plus { transform: rotate(45deg); }
 .details-content > .detail-note:first-child { margin-top: 0; }
 .timing-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0 9px; }
 .timing-grid label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
-.optional-holds { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: center; gap: 12px; margin-top: 16px; }
-.optional-preset { min-height: 58px; padding: 8px 5px; }
-.optional-holds .button { padding: 9px 10px; }
+#skip-holds { margin-top: 12px; }
 input[type="number"] { min-height: 44px; min-width: 0; width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); color: var(--ink); font-variant-numeric: tabular-nums; }
 .range-label { display: grid; grid-template-columns: 85px minmax(0, 1fr); align-items: center; gap: 15px; font-size: 13px; margin: 7px 0; }
 input[type="range"] { width: 100%; min-width: 0; min-height: 44px; margin: 0; accent-color: var(--accent); }
@@ -186,7 +189,7 @@ body[data-pacing="own"] #phase-count { display: none; }
   .comfort-note { margin-top: 10px; font-size: 11px; }
   .control-panel { padding: 8px 1px 0; }
   .panel-heading { margin-bottom: 4px; }
-  .pacing-options { margin-bottom: 11px; }
+  .technique-description { margin: 0 0 11px; }
   .preset { min-height: 62px; padding: 8px 3px; gap: 3px; }
   .preset-name { font-size: 13px; }
   .pattern-summary { margin-top: 9px; margin-bottom: 7px; min-height: 18px; font-size: 12px; }
@@ -221,7 +224,6 @@ body[data-pacing="own"] #phase-count { display: none; }
 
 @media (forced-colors: active) {
   .preset[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: -4px; }
-  .pacing-options button[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: -4px; }
   #breath-orb { border: 2px solid CanvasText; }
   .switch-track { border: 1px solid CanvasText; }
   .switch-track span { background: CanvasText; }

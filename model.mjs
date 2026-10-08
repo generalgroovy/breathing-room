@@ -1,5 +1,6 @@
 /** Pure timing and settings rules. The UI supplies a monotonic elapsed time. */
 export const PRESETS = Object.freeze([
+  Object.freeze({ id: 'slow', name: 'Slow & even', inhale: 5, holdIn: 0, exhale: 5, holdOut: 0, description: 'Slow, equal breaths without pauses. Adjust the pace to your comfort.' }),
   Object.freeze({ id: 'easy', name: 'Easy rhythm', inhale: 3, holdIn: 0, exhale: 3, holdOut: 0, description: 'Equal time breathing in and out, without pauses.' }),
   Object.freeze({ id: 'gentle', name: 'Longer exhale', inhale: 4, holdIn: 0, exhale: 6, holdOut: 0, description: 'A comfortable inhale and a slightly longer exhale.' }),
   Object.freeze({ id: 'even', name: 'Even rhythm', inhale: 4, holdIn: 0, exhale: 4, holdOut: 0, description: 'Equal time breathing in and out, without pauses.' }),
@@ -7,9 +8,9 @@ export const PRESETS = Object.freeze([
 ]);
 
 export const DEFAULTS = Object.freeze({
-  preset: 'easy', inhale: 3, holdIn: 0, exhale: 3, holdOut: 0,
+  preset: 'slow', inhale: 5, holdIn: 0, exhale: 5, holdOut: 0,
   minutes: 1, sound: true, volume: 25, cue: 'bell', motion: 'auto',
-  pacing: 'guided', showSeconds: false,
+  pacing: 'guided', showSeconds: false, practice: 'mindful', settingsVersion: 2,
 });
 
 const TIMING_KEYS = Object.freeze(['inhale', 'holdIn', 'exhale', 'holdOut']);
@@ -63,6 +64,8 @@ export function normalizeSettings(input) {
     motion: DEFAULTS.motion,
     pacing: DEFAULTS.pacing,
     showSeconds: DEFAULTS.showSeconds,
+    practice: DEFAULTS.practice,
+    settingsVersion: DEFAULTS.settingsVersion,
   };
   const sound = ownValue(source, 'sound');
   if (typeof sound === 'boolean') result.sound = sound;
@@ -74,9 +77,29 @@ export function normalizeSettings(input) {
   if (pacing === 'guided' || pacing === 'own') result.pacing = pacing;
   const showSeconds = ownValue(source, 'showSeconds');
   if (typeof showSeconds === 'boolean') result.showSeconds = showSeconds;
+  const practice = ownValue(source, 'practice');
+  if (practice === 'mindful' || practice === 'sigh') result.practice = practice;
   // The name always describes the actual rhythm, including after an import.
   result.preset = PRESETS.find(preset => TIMING_KEYS.every(key => preset[key] === result[key]))?.id ?? 'custom';
   return result;
+}
+
+/** Restore device preferences; explicit rhythm links use normalizeSettings. */
+export function restoreSettings(input) {
+  const source = settingsObject(input);
+  const restored = normalizeSettings(source);
+  const pacing = ownValue(source, 'pacing');
+  const isLegacyDefault = ownValue(source, 'settingsVersion') === undefined
+    && ownValue(source, 'preset') === 'easy'
+    && (pacing === undefined || pacing === 'guided')
+    && ownValue(source, 'inhale') === 3 && ownValue(source, 'holdIn') === 0
+    && ownValue(source, 'exhale') === 3 && ownValue(source, 'holdOut') === 0;
+  if (isLegacyDefault) {
+    restored.preset = 'slow';
+    restored.inhale = 5;
+    restored.exhale = 5;
+  }
+  return restored;
 }
 
 export function createPlan(input) {

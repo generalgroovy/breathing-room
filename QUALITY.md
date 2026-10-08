@@ -1,6 +1,25 @@
 # Release checks
 
-## 1.1.0 — comfort and pacing refinement
+## 1.2.0 — technique selection and research context
+
+Checked on 8 October 2026. The earlier results below are preserved as historical evidence.
+
+The candidate defaults to Slow & even (5 seconds in / 5 seconds out), with visible Longer out, Box, Mindful and Gentle sigh choices. Mindful is unpaced observation; Gentle sigh is explicitly a self-paced adaptation with no phase-second prescription or claim to reproduce the original research protocol. The chosen technique has its own Guide & research section. The one-minute starting duration remains independent of technique.
+
+- **74 automated tests pass:** 30 model, 23 session, 11 audio and 10 screen wake-lock tests. New cases cover the exact legacy migration, preserving explicit timings, versioned settings and the two self-paced practices. Existing interruption, completion and cue-cancellation checks pass.
+- Nine module syntax checks, runtime references, unique IDs, relative manifest checks, whitespace checks and the nine-file build pass.
+- Real-browser checks covered all five choices, their selected state and technique-specific guidance. Mindful completed a one-minute timer with a stationary orb and no phase count. Gentle sigh used the same unpaced display with its distinct instructions and immediate Stop. Box could be paused and its holds removed, restoring input focus.
+- Slow & even completed a full one-minute guided session at 5/5 and displayed the natural completion state after its final exhale.
+- The browser's existing Easy preferences migrated to 5/5 with an explanatory notice. A deliberately opened 3/3 link stayed at 3/3 after saving and returning without query parameters. A link with `pacing=own&practice=sigh` correctly selected Gentle sigh; preset buttons returned to guided mode.
+- Copying reported success and the URL construction was independently reviewed. The automation clipboard reader returned a stale prior link, so this run does not establish native clipboard correspondence.
+- Keyboard activation selected Longer out. At 320 × 780, the page had no horizontal overflow and all five controls remained readable and at least 60 pixels tall. The desktop layout at 1280 × 900 kept the primary action and technique choices visible. No browser console errors or warnings appeared in the checked flows.
+- Independent model/controller and interface review found no remaining consequential defect. Own-mode summaries avoid division by zero; a migration save failure keeps its storage warning visible.
+
+The publishing workflow repeats the software checks before deployment. Public file correspondence and live smoke checks are recorded separately at release time; software evidence does not establish clinical or physical-device acceptance.
+
+The source review is recorded in [HEALTH.md](HEALTH.md), checked 2026-10-08. Professional medical review, clinical evaluation and physical-device acceptance remain unperformed unless independently documented; software checks do not establish those outcomes.
+
+## 1.1.0 — historical comfort and pacing refinement
 
 Checked on 8 October 2026. The 1.0.0 results below are preserved as historical evidence; the checks here cover the updated implementation.
 

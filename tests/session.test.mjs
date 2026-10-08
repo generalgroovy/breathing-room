@@ -52,7 +52,7 @@ test('a tick just after readiness counts only time after the preparation', () =>
   const ready = clock.tick(3500);
   assert.equal(ready.status, 'running');
   assert.equal(ready.elapsedMs, 400);
-  assert.equal(ready.frame.phaseProgress, 400 / 3000);
+  assert.equal(ready.frame.phaseProgress, 400 / 5000);
 });
 
 test('repeated prepare does not reset an active countdown or running breath', () => {

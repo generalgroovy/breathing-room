@@ -1,4 +1,4 @@
-import { DEFAULTS, PRESETS, normalizeSettings, createPlan, formatTime } from './model.mjs';
+import { DEFAULTS, PRESETS, normalizeSettings, restoreSettings, createPlan, formatTime } from './model.mjs';
 import { SessionClock } from './session.mjs';
 import { SoftAudio } from './audio.mjs';
 import { StayAwake } from './screen.mjs';
@@ -11,10 +11,13 @@ const screen = new StayAwake();
 let settings = { ...DEFAULTS };
 let storageOK = true;
 let initialNotice = '';
+let migratedStarter = false;
 try {
   const saved = localStorage.getItem(storeKey);
   if (saved) {
-    settings = normalizeSettings(saved);
+    settings = restoreSettings(saved);
+    migratedStarter = normalizeSettings(saved).preset === 'easy' && settings.preset === 'slow';
+    if (migratedStarter) initialNotice = 'The starting rhythm is now slower: 5 seconds in, 5 out. Adjust it whenever you like.';
     try { JSON.parse(saved); } catch { initialNotice = 'Your saved settings could not be read. A gentle rhythm is ready.'; }
   }
 } catch { storageOK = false; }
@@ -28,6 +31,7 @@ if (query.has('inhale') || query.has('pacing')) {
     if (raw !== null && /^\d{1,2}$/.test(raw)) imported[key] = Number(raw);
   }
   imported.pacing = query.get('pacing') === 'own' ? 'own' : 'guided';
+  imported.practice = query.get('practice') === 'sigh' ? 'sigh' : 'mindful';
   settings = normalizeSettings({ ...settings, ...imported });
   initialNotice = 'Shared rhythm loaded. Adjust it to feel comfortable.';
 }
@@ -43,6 +47,61 @@ let previewTimer = 0;
 let audioWarning = false;
 
 function notice(message) { $('notice').textContent = message; }
+
+const nhsBreathing = ['NHS breathing guidance', 'https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/'];
+const structuredStudy = ['Box & sigh study (2023)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9873947/'];
+const techniqueNotes = {
+  slow: {
+    description: 'A slower, even rhythm. Five seconds in, five out, without holds.',
+    guidance: 'Let the inhale arrive gently and the exhale leave without pushing. Breathe sooner whenever you need to. Six guide cycles per minute is an option, not a target for everyone.',
+    evidence: 'Slow, equal breathing is studied, but no pace is universally best. This 5/5 guide is a simple adaptation: the linked trial used about 5.5 seconds each way, 10 minutes daily for four weeks, and found no advantage over its faster comparison for psychological outcomes.',
+    links: [nhsBreathing, ['Slow-breathing trial (2023)', 'https://www.nature.com/articles/s41598-023-49279-8']],
+  },
+  gentle: {
+    description: 'A gentle inhale with a little more time to breathe out.',
+    guidance: 'Inhale for four seconds and let the exhale last six only if it feels easy. Keep your breath comfortable in size; you do not need to empty your lungs.',
+    evidence: 'The 4/6 timing is this app’s adjustable starting point. A trial comparing longer versus equal exhales found no clear difference in stress reduction. A longer exhale is a preference, not an established better ratio.',
+    links: [nhsBreathing, ['Exhale-ratio trial (2023)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10395759/']],
+  },
+  box: {
+    description: 'Four equal steps, with optional pauses between breaths.',
+    guidance: 'Breathe in for four, pause for four, breathe out for four, then pause for four. Breathe sooner if needed. “Make it yours” lets you shorten or remove the pauses.',
+    evidence: 'Four-second square breathing appears in NHS guidance. The research trial used five minutes daily and adjusted phase lengths to participants; four seconds is not a universal prescription.',
+    links: [['NHS square-breathing guide', 'https://www.rnoh.nhs.uk/patients-and-visitors/patient-information-guides/relaxation-techniques-pain-management'], structuredStudy],
+  },
+  mindful: {
+    description: 'Notice your ordinary breath. No timing to follow.',
+    guidance: 'Notice where you feel your breath: perhaps at your nose or in the movement of your body. When attention wanders, gently return. Leave the pace and size of your breathing alone.',
+    evidence: 'Mindful breathing is an attention practice, not a breathing-speed prescription. The timer offers a quiet space to practise; no particular session length guarantees a benefit.',
+    links: [['NHS mindfulness guidance', 'https://www.nhs.uk/mental-health/self-help/tips-and-support/mindfulness/']],
+  },
+  sigh: {
+    description: 'A gentle double inhale and an easy longer exhale, at your own pace.',
+    guidance: 'Take a gentle inhale, then one small top-up only if comfortable. Let a longer exhale go without forcing. Take ordinary breaths whenever you like; there is no count or repetition target.',
+    evidence: 'An adaptation of cyclic sighing, with no fixed seconds. The study used fuller breaths for five minutes daily over a month. This gentler version has not been separately tested and does not inherit the study’s results.',
+    links: [structuredStudy, nhsBreathing],
+  },
+  custom: {
+    description: 'Your own timing. Keep every breath comfortable.',
+    guidance: 'Adjust the times in “Make it yours”. Pauses are optional. Let any cue pass or use Mindful for ordinary breathing with no pace to match.',
+    evidence: 'These custom timings have no specific evidence claim. No medical or meditation standard makes one pace right for everyone, and the controls are not validated safety limits.',
+    links: [nhsBreathing],
+  },
+};
+
+function describeTechnique() {
+  const key = settings.pacing === 'own' ? settings.practice : settings.preset;
+  const note = techniqueNotes[key] ?? techniqueNotes.custom;
+  $('technique-description').textContent = note.description;
+  $('technique-guidance').textContent = note.guidance;
+  $('technique-evidence').textContent = note.evidence;
+  $('technique-links').replaceChildren(...note.links.map(([label, href]) => {
+    const link = document.createElement('a');
+    link.textContent = label; link.href = href;
+    link.target = '_blank'; link.rel = 'noopener noreferrer';
+    return link;
+  }));
+}
 function save() {
   try { localStorage.setItem(storeKey, JSON.stringify(settings)); }
   catch {
@@ -113,13 +172,15 @@ function configure() {
   $('customize').hidden = settings.pacing === 'own';
   $('holds-note').hidden = !(settings.holdIn || settings.holdOut);
   $('skip-holds').disabled = !(settings.holdIn || settings.holdOut);
-  document.querySelectorAll('button[data-pacing]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.pacing === settings.pacing)));
-  document.querySelectorAll('[data-preset]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.preset === settings.preset)));
+  document.querySelectorAll('button[data-practice]').forEach(button => button.setAttribute('aria-pressed', String(settings.pacing === 'own' && button.dataset.practice === settings.practice)));
+  document.querySelectorAll('[data-preset]').forEach(button => button.setAttribute('aria-pressed', String(settings.pacing === 'guided' && button.dataset.preset === settings.preset)));
+  describeTechnique();
   const parts = [`${settings.inhale}s in`];
   if (settings.holdIn) parts.push(`${settings.holdIn}s hold after in`);
   parts.push(`${settings.exhale}s out`);
   if (settings.holdOut) parts.push(`${settings.holdOut}s hold after out`);
-  $('pattern-summary').textContent = parts.join(' · ') + '. Comfort comes before the count.';
+  const cyclesPerMinute = plan.cycleMs ? Number((60_000 / plan.cycleMs).toFixed(2)) : 0;
+  $('pattern-summary').textContent = settings.pacing === 'own' ? '' : parts.join(' · ') + ` · ${cyclesPerMinute} guide cycles/min`;
   $('duration-note').textContent = settings.pacing === 'own' ? 'No breathing targets. A quiet moment at your own pace.' : plan.durationMs === plan.requestedMs
     ? 'Ends after a complete breath.'
     : `${formatTime(plan.durationMs)} total, so your last breath can finish.`;
@@ -151,6 +212,7 @@ function render(snapshot) {
   $('reset').disabled = guiding;
   $('share').disabled = guiding;
   $('start').hidden = status !== 'idle';
+  $('start').querySelector('span').textContent = ownPace ? 'Start quiet timer' : 'Start breathing';
   $('pause').hidden = !active;
   $('stop').hidden = !active;
   $('result').hidden = status !== 'complete';
@@ -163,15 +225,15 @@ function render(snapshot) {
   else if (status === 'idle') orb.style.setProperty('--expansion', 0);
   orb.dataset.phase = status === 'running' ? frame.phaseId : status;
   let label = 'Find a comfortable seat.';
-  let guide = ownPace ? 'Let your breathing find its own comfortable rhythm.' : 'Keep breaths easy. Join the guide only if comfortable.';
+  let guide = ownPace ? (settings.practice === 'sigh' ? 'Gentle inhale, small top-up, easy longer exhale. Your own pace.' : 'Notice your breathing without trying to change it.') : 'Keep breaths easy. Join the guide only if comfortable.';
   let count = '';
   if (status === 'preparing') {
     label = 'Settle in';
     guide = ownPace ? 'Nothing to match. Breathe in your own way.' : 'Breathe normally. Join any inhale when it feels easy.';
     count = settings.showSeconds && !ownPace ? Math.max(1, Math.ceil(readyRemainingMs / 1000)) : '';
   } else if (status === 'running' && ownPace) {
-    label = 'Breathe in your own way.';
-    guide = 'No need to slow, deepen or hold your breath.';
+    label = settings.practice === 'sigh' ? 'Sigh gently, at your pace.' : 'Notice the breath.';
+    guide = settings.practice === 'sigh' ? 'Easy inhale, small top-up, gentle longer exhale. Ordinary breaths whenever you need.' : 'Let it come and go. When attention wanders, gently return.';
     if (lastPhase !== 'natural') {
       lastPhase = 'natural';
       $('phase-announcement').textContent = `${label} ${guide}`;
@@ -280,13 +342,13 @@ function applySetup(message = '') {
   notice(message || (wasPaused ? 'Rhythm changed. Start a new session when comfortable.' : ''));
   save();
 }
-document.querySelectorAll('button[data-pacing]').forEach(button => button.addEventListener('click', () => {
-  settings = normalizeSettings({ ...settings, pacing: button.dataset.pacing });
+document.querySelectorAll('button[data-practice]').forEach(button => button.addEventListener('click', () => {
+  settings = normalizeSettings({ ...settings, pacing: 'own', practice: button.dataset.practice });
   applySetup();
 }));
 document.querySelectorAll('[data-preset]').forEach(button => button.addEventListener('click', () => {
   const preset = PRESETS.find(item => item.id === button.dataset.preset);
-  settings = normalizeSettings({ ...settings, ...preset });
+  settings = normalizeSettings({ ...settings, ...preset, pacing: 'guided' });
   applySetup();
 }));
 $('skip-holds').addEventListener('click', () => {
@@ -335,7 +397,7 @@ $('test-sound').addEventListener('click', () => {
 });
 
 $('reset').addEventListener('click', () => {
-  silence(); settings = { ...DEFAULTS }; configure(); notice('Short, hold-free defaults restored.'); save();
+  silence(); settings = { ...DEFAULTS }; configure(); notice('Slow & even restored: 5 seconds in, 5 out, without holds.'); save();
   const url = new URL(location.href); url.search = ''; history.replaceState(null, '', url);
 });
 
@@ -344,6 +406,7 @@ $('share').addEventListener('click', async () => {
   if (!readTiming()) return;
   const url = new URL(location.href); url.search = ''; url.hash = '';
   url.searchParams.set('pacing', settings.pacing);
+  if (settings.pacing === 'own') url.searchParams.set('practice', settings.practice);
   for (const key of settings.pacing === 'own' ? ['minutes'] : [...timingKeys, 'minutes']) url.searchParams.set(key, settings[key]);
   try {
     if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
@@ -375,3 +438,4 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) backg
 window.addEventListener('pagehide', backgroundPause);
 configure();
 notice(initialNotice || (!storageOK ? 'Settings will last for this visit. Browser storage is unavailable.' : ''));
+if (migratedStarter) save();

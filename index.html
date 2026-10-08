@@ -59,27 +59,26 @@
 
         <section class="control-panel" aria-labelledby="rhythm-title">
           <div class="panel-heading">
-            <h2 id="rhythm-title">Your rhythm</h2>
+            <h2 id="rhythm-title">Your practice</h2>
             <label class="sound-switch" for="sound">
               <input id="sound" type="checkbox" checked>
               <span class="switch-track" aria-hidden="true"><span></span></span>
               <span>Sound</span>
             </label>
           </div>
+          <p id="technique-description" class="technique-description">An even, unhurried rhythm. Keep the breath comfortable.</p>
 
           <fieldset id="setup">
             <legend class="visually-hidden">Set up your breathing session</legend>
-            <div class="pacing-options" role="group" aria-label="Session pacing">
-              <button type="button" data-pacing="guided" aria-pressed="true">Guided</button>
-              <button type="button" data-pacing="own" aria-pressed="false">Own rhythm</button>
+            <div id="technique-options" class="preset-list" role="group" aria-label="Breathing practice" aria-describedby="technique-description">
+              <button class="preset" type="button" data-preset="slow" aria-pressed="true"><span class="preset-name">Slow &amp; even</span><span class="preset-timing">5 in · 5 out</span></button>
+              <button class="preset" type="button" data-preset="gentle" aria-pressed="false"><span class="preset-name">Longer out</span><span class="preset-timing">4 in · 6 out</span></button>
+              <button class="preset" type="button" data-preset="box" aria-pressed="false"><span class="preset-name">Box</span><span class="preset-timing">4 · 4 · 4 · 4</span><span class="preset-hint">Optional pauses</span></button>
+              <button class="preset" type="button" data-practice="mindful" aria-pressed="false"><span class="preset-name">Mindful</span><span class="preset-timing">Own rhythm</span></button>
+              <button class="preset" type="button" data-practice="sigh" aria-pressed="false"><span class="preset-name">Gentle sigh</span><span class="preset-timing">Own rhythm</span></button>
             </div>
             <div id="rhythm-options">
-              <div class="preset-list" role="group" aria-label="Breathing rhythm">
-                <button class="preset" type="button" data-preset="easy" aria-pressed="true"><span class="preset-name">Easy</span><span class="preset-timing">3 in · 3 out</span></button>
-                <button class="preset" type="button" data-preset="even" aria-pressed="false"><span class="preset-name">Even</span><span class="preset-timing">4 in · 4 out</span></button>
-                <button class="preset" type="button" data-preset="gentle" aria-pressed="false"><span class="preset-name">Longer out</span><span class="preset-timing">4 in · 6 out</span></button>
-              </div>
-              <p id="pattern-summary" class="pattern-summary">3 seconds in, 3 seconds out. Stay within an easy breath.</p>
+              <p id="pattern-summary" class="pattern-summary">5 seconds in, 5 seconds out. Stay within an easy breath.</p>
               <p id="holds-note" class="holds-note" hidden>This rhythm includes holds. Skip them whenever uncomfortable.</p>
             </div>
             <div class="duration-row">
@@ -99,19 +98,25 @@
               <div class="details-content">
                 <p class="detail-note">Choose a comfortable pace. All times are in seconds.</p>
                 <div class="timing-grid">
-                  <label for="inhale"><span>Breathe in</span><input id="inhale" type="number" min="2" max="6" step="1" value="3" inputmode="numeric" required></label>
-                  <label for="exhale"><span>Breathe out</span><input id="exhale" type="number" min="2" max="6" step="1" value="3" inputmode="numeric" required></label>
+                  <label for="inhale"><span>Breathe in</span><input id="inhale" type="number" min="2" max="6" step="1" value="5" inputmode="numeric" required></label>
+                  <label for="exhale"><span>Breathe out</span><input id="exhale" type="number" min="2" max="6" step="1" value="5" inputmode="numeric" required></label>
                   <label for="holdIn"><span>Hold after in</span><input id="holdIn" type="number" min="0" max="4" step="1" value="0" inputmode="numeric" required></label>
                   <label for="holdOut"><span>Hold after out</span><input id="holdOut" type="number" min="0" max="4" step="1" value="0" inputmode="numeric" required></label>
                 </div>
                 <p class="detail-note">Holds are optional. Set both to 0 for an uninterrupted breath.</p>
-                <div class="optional-holds">
-                  <button class="preset optional-preset" type="button" data-preset="box" aria-pressed="false"><span class="preset-name">Box</span><span class="preset-timing">4s with holds</span></button>
-                  <button id="skip-holds" class="button button-outline" type="button">Remove holds</button>
-                </div>
+                <button id="skip-holds" class="button button-outline" type="button">Remove holds</button>
               </div>
             </details>
           </fieldset>
+
+          <details id="technique-info" class="settings-details">
+            <summary>Guide &amp; research <span class="summary-plus" aria-hidden="true">+</span></summary>
+            <div class="details-content technique-content">
+              <p id="technique-guidance">Breathe in gently for 5 seconds and out for 5. Let any cue pass if needed.</p>
+              <p id="technique-evidence">Research evaluates breathing practices, not this app. Choose a pace that feels comfortable.</p>
+              <div id="technique-links" class="technique-links"></div>
+            </div>
+          </details>
 
           <details class="settings-details audio-details" id="sound-settings">
             <summary>Sound &amp; display <span class="summary-plus" aria-hidden="true">+</span></summary>
@@ -144,7 +149,7 @@
         <div id="health-info" class="health-content">
           <h3>Comfort comes first</h3>
           <p>Sit or lie comfortably. Keep breaths quiet and an ordinary, comfortable size. There is no lung-volume target: do not force your lungs full or empty. The orb guides timing, not breath size. Counts are optional; let any cue pass if needed. <a href="https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/" target="_blank" rel="noopener noreferrer">NHS guidance</a> and <a href="https://www.cuh.nhs.uk/patient-information/breathing-exercises-in-the-treatment-of-hyperventilation/" target="_blank" rel="noopener noreferrer">CUH breathing guidance</a>.</p>
-          <p>Choose Own rhythm for a quiet timer without breathing instructions. Holds are optional, not a goal or a promise of extra benefit. Remove them whenever uncomfortable.</p>
+          <p>Choose Mindful to notice your breath without matching a pace. Holds are optional, not a goal or a promise of extra benefit. Remove them whenever uncomfortable.</p>
           <p>Stop if dizzy, tingly, breathless, anxious or uncomfortable. Return to your usual breathing. Do not practise while driving or in water. Seek urgent medical help for chest pain, severe breathlessness or fainting.</p>
           <h3>Choose what suits you</h3>
           <p>This is general wellness practice for adults, not a children’s protocol. If you have a heart or lung condition, are pregnant, have fainting episodes or epilepsy, or breathing focus worsens anxiety, ask a clinician about paced breathing and holds before using them. <a href="https://www.nccih.nih.gov/health/relaxation-techniques-what-you-need-to-know" target="_blank" rel="noopener noreferrer">NCCIH guidance</a>.</p>
