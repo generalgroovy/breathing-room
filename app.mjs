@@ -21,12 +21,13 @@ try {
 
 // Share only the rhythm, never device preferences or a session history.
 const query = new URL(location.href).searchParams;
-if (query.has('inhale')) {
+if (query.has('inhale') || query.has('pacing')) {
   const imported = {};
   for (const key of [...timingKeys, 'minutes']) {
     const raw = query.get(key);
     if (raw !== null && /^\d{1,2}$/.test(raw)) imported[key] = Number(raw);
   }
+  imported.pacing = query.get('pacing') === 'own' ? 'own' : 'guided';
   settings = normalizeSettings({ ...settings, ...imported });
   initialNotice = 'Shared rhythm loaded. Adjust it to feel comfortable.';
 }
@@ -51,10 +52,11 @@ function save() {
 }
 
 function soundStatus() {
-  let message = 'Rising tone: breathe in. Falling tone: breathe out.';
-  if (!settings.sound || settings.volume === 0) message = 'Silent mode. Follow the visual guide.';
-  else if (!audio.available) message = 'Sound is unavailable in this browser. The visual guide still works.';
-  else if (!audio.ready) message = 'Soft cues begin after you tap Start or Try the sound.';
+  const ownPace = settings.pacing === 'own';
+  let message = ownPace ? 'Only an ending chime. No cues to change your breathing.' : 'Rising tone: inhale. Falling tone: exhale. Skip any cue if needed.';
+  if (!settings.sound || settings.volume === 0) message = ownPace ? 'A silent timer. Breathe in your own way.' : 'Silent mode. Follow the guide only if comfortable.';
+  else if (!audio.available) message = ownPace ? 'Sound is unavailable. Your quiet timer still works.' : 'Sound is unavailable in this browser. The visual guide still works.';
+  else if (!audio.ready) message = ownPace ? 'An ending chime, if sound is available. No breathing cues.' : 'Soft cues begin after you tap Start or Try the sound.';
   $('sound-state').textContent = message;
   $('test-sound').disabled = !settings.sound || settings.volume === 0 || !audio.available || ['preparing', 'running', 'paused'].includes(clock.status);
   $('volume').setAttribute('aria-valuetext', `${settings.volume} percent`);
@@ -77,7 +79,7 @@ function enableAudio() {
     audioWasReady = ready;
     if (!ready && !audioWarning) {
       audioWarning = true;
-      notice('Sound could not start. You can follow the visual guide, or pause and resume to try again.');
+      notice(settings.pacing === 'own' ? 'Sound could not start. Your quiet timer still works.' : 'Sound could not start. Follow the guide only if comfortable, or take a break and resume to try again.');
     }
     soundStatus();
     return ready;
@@ -85,6 +87,7 @@ function enableAudio() {
 }
 
 function configure() {
+  silence();
   plan = createPlan(settings);
   clock.reset(plan);
   lastPhase = '';
@@ -103,14 +106,21 @@ function configure() {
   $('volume').value = settings.volume;
   $('cue').value = settings.cue;
   $('motion').value = settings.motion;
+  $('showSeconds').checked = settings.showSeconds;
   document.body.dataset.motion = settings.motion;
+  document.body.dataset.pacing = settings.pacing;
+  $('rhythm-options').hidden = settings.pacing === 'own';
+  $('customize').hidden = settings.pacing === 'own';
+  $('holds-note').hidden = !(settings.holdIn || settings.holdOut);
+  $('skip-holds').disabled = !(settings.holdIn || settings.holdOut);
+  document.querySelectorAll('button[data-pacing]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.pacing === settings.pacing)));
   document.querySelectorAll('[data-preset]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.preset === settings.preset)));
   const parts = [`${settings.inhale}s in`];
-  if (settings.holdIn) parts.push(`${settings.holdIn}s gentle hold`);
+  if (settings.holdIn) parts.push(`${settings.holdIn}s hold after in`);
   parts.push(`${settings.exhale}s out`);
-  if (settings.holdOut) parts.push(`${settings.holdOut}s gentle rest`);
-  $('pattern-summary').textContent = parts.join(' · ') + '. No need to fill your lungs.';
-  $('duration-note').textContent = plan.durationMs === plan.requestedMs
+  if (settings.holdOut) parts.push(`${settings.holdOut}s hold after out`);
+  $('pattern-summary').textContent = parts.join(' · ') + '. Comfort comes before the count.';
+  $('duration-note').textContent = settings.pacing === 'own' ? 'No breathing targets. A quiet moment at your own pace.' : plan.durationMs === plan.requestedMs
     ? 'Ends after a complete breath.'
     : `${formatTime(plan.durationMs)} total, so your last breath can finish.`;
   audio.setTone(settings.cue);
@@ -120,62 +130,72 @@ function configure() {
 }
 
 function readTiming() {
-  for (const key of timingKeys) {
+  for (const key of settings.pacing === 'own' ? [] : timingKeys) {
     if (!$(key).checkValidity()) {
       $('customize').open = true;
       $(key).reportValidity();
       return false;
     }
   }
-  settings = normalizeSettings({ ...settings, ...Object.fromEntries(timingKeys.map(key => [key, $(key).valueAsNumber])), minutes: Number($('minutes').value) });
+  settings = normalizeSettings({ ...settings, ...(settings.pacing === 'own' ? {} : Object.fromEntries(timingKeys.map(key => [key, $(key).valueAsNumber]))), minutes: Number($('minutes').value) });
   return true;
 }
 
 function render(snapshot) {
   const { status, frame, elapsedMs, readyRemainingMs, completedNaturally } = snapshot;
   const active = ['preparing', 'running', 'paused'].includes(status);
+  const guiding = ['preparing', 'running'].includes(status);
+  const ownPace = settings.pacing === 'own';
   document.body.dataset.status = status;
-  $('setup').disabled = active;
-  $('reset').disabled = active;
-  $('share').disabled = active;
+  $('setup').disabled = guiding;
+  $('reset').disabled = guiding;
+  $('share').disabled = guiding;
   $('start').hidden = status !== 'idle';
   $('pause').hidden = !active;
   $('stop').hidden = !active;
   $('result').hidden = status !== 'complete';
-  $('pause').textContent = status === 'paused' ? 'Resume' : 'Pause';
+  $('pause').textContent = status === 'paused' ? (ownPace ? 'Continue' : 'Resume guide') : (ownPace ? 'Pause timer' : 'Breathe freely');
   $('progress').value = elapsedMs / plan.durationMs;
   $('session-clock').textContent = formatTime(frame.remainingMs);
-  $('cycle-count').textContent = status === 'idle' ? 'Ready when you are' : `${frame.completedCycles} of ${plan.cycles} breaths`;
+  $('cycle-count').textContent = ownPace ? 'Your own rhythm' : settings.showSeconds && status === 'running' ? `Guide cycle ${frame.cycleNumber} of ${plan.cycles}` : 'Follow only if comfortable';
   const orb = $('breath-orb');
-  orb.style.setProperty('--expansion', status === 'running' ? frame.expansion : 0);
+  if (status === 'running' && !ownPace) orb.style.setProperty('--expansion', frame.expansion);
+  else if (status === 'idle') orb.style.setProperty('--expansion', 0);
   orb.dataset.phase = status === 'running' ? frame.phaseId : status;
   let label = 'Find a comfortable seat.';
-  let guide = 'An easy breath. No need to breathe deeply.';
+  let guide = ownPace ? 'Let your breathing find its own comfortable rhythm.' : 'Keep breaths easy. Join the guide only if comfortable.';
   let count = '';
   if (status === 'preparing') {
     label = 'Settle in';
-    guide = 'Breathe naturally. We’ll begin with a gentle inhale.';
-    count = Math.max(1, Math.ceil(readyRemainingMs / 1000));
+    guide = ownPace ? 'Nothing to match. Breathe in your own way.' : 'Breathe normally. Join any inhale when it feels easy.';
+    count = settings.showSeconds && !ownPace ? Math.max(1, Math.ceil(readyRemainingMs / 1000)) : '';
+  } else if (status === 'running' && ownPace) {
+    label = 'Breathe in your own way.';
+    guide = 'No need to slow, deepen or hold your breath.';
+    if (lastPhase !== 'natural') {
+      lastPhase = 'natural';
+      $('phase-announcement').textContent = `${label} ${guide}`;
+    }
   } else if (status === 'running') {
     label = frame.label;
     guide = frame.phaseId === 'inhale' ? 'An easy, comfortable breath.'
       : frame.phaseId === 'exhale' ? 'Let it go gently. No pushing.'
-      : 'Only if comfortable. You can finish at any time.';
-    count = Math.max(1, Math.ceil(frame.phaseRemainingMs / 1000));
+      : 'Skip this pause whenever you need a breath.';
+    count = settings.showSeconds ? Math.max(1, Math.ceil(frame.phaseRemainingMs / 1000)) : '';
     const phaseKey = `${frame.cycleNumber}:${frame.phaseId}`;
     if (phaseKey !== lastPhase) {
       lastPhase = phaseKey;
-      $('phase-announcement').textContent = `${frame.label}, ${plan.phases[frame.phaseIndex].seconds} seconds.`;
+      $('phase-announcement').textContent = settings.showSeconds ? `${frame.label}, ${plan.phases[frame.phaseIndex].seconds} seconds.` : frame.label;
       if (settings.sound && settings.volume > 0 && audio.ready) audio.cue(frame.phaseId);
     }
   } else if (status === 'paused') {
     label = 'Take your time.';
-    guide = 'Breathe naturally. Resume starts with a fresh breath.';
+    guide = 'Breathe in your own way. Continue or adjust the rhythm when comfortable.';
   } else if (status === 'complete') {
     label = completedNaturally ? 'A little more space.' : 'Come back to your own rhythm.';
     guide = 'Let your breathing return to its natural pace.';
     $('result-summary').textContent = elapsedMs < 1000 ? 'Whenever you’re ready, there’s room for another breath.'
-      : `${formatTime(elapsedMs)} of guided breathing${completedNaturally ? ' completed.' : '. Every comfortable moment counts.'}`;
+      : `${formatTime(elapsedMs)} ${ownPace ? 'at your own pace' : 'with the guide'}${completedNaturally ? ' completed.' : '. You can stop whenever you need to.'}`;
   }
   $('phase-label').textContent = label;
   $('guide-note').textContent = guide;
@@ -220,8 +240,13 @@ function tick(now) {
   }
   if (snapshot.status === 'complete') { finish(true); return; }
   if (audioWasReady && settings.sound && settings.volume > 0 && !audio.ready) {
-    pause('Sound was interrupted. Resume to start again with a fresh breath.');
-    return;
+    if (settings.pacing === 'guided') {
+      pause('Sound was interrupted. Resume when comfortable.');
+      return;
+    }
+    audioWasReady = false;
+    soundStatus();
+    notice('Sound was interrupted. Your quiet timer continues.');
   }
   render(snapshot);
   if (['preparing', 'running'].includes(clock.status)) animation = requestAnimationFrame(tick);
@@ -229,6 +254,7 @@ function tick(now) {
 
 function start() {
   if (['preparing', 'running'].includes(clock.status)) return;
+  if (!readTiming()) return;
   notice('');
   if (clock.status !== 'paused') {
     if (!readTiming()) return;
@@ -248,23 +274,39 @@ $('start').addEventListener('click', start);
 $('again').addEventListener('click', start);
 $('pause').addEventListener('click', () => clock.status === 'paused' ? start() : pause());
 $('stop').addEventListener('click', () => finish());
+function applySetup(message = '') {
+  const wasPaused = clock.status === 'paused';
+  configure();
+  notice(message || (wasPaused ? 'Rhythm changed. Start a new session when comfortable.' : ''));
+  save();
+}
+document.querySelectorAll('button[data-pacing]').forEach(button => button.addEventListener('click', () => {
+  settings = normalizeSettings({ ...settings, pacing: button.dataset.pacing });
+  applySetup();
+}));
 document.querySelectorAll('[data-preset]').forEach(button => button.addEventListener('click', () => {
   const preset = PRESETS.find(item => item.id === button.dataset.preset);
   settings = normalizeSettings({ ...settings, ...preset });
-  notice(''); configure(); save();
+  applySetup();
 }));
+$('skip-holds').addEventListener('click', () => {
+  settings = normalizeSettings({ ...settings, holdIn: 0, holdOut: 0 });
+  applySetup('Holds removed. Start when comfortable.');
+  $('inhale').focus({ preventScroll: true });
+});
 for (const key of [...timingKeys, 'minutes']) $(key).addEventListener('change', () => {
-  if (readTiming()) { notice(''); configure(); save(); }
+  const before = JSON.stringify(settings);
+  if (readTiming() && before !== JSON.stringify(settings)) applySetup();
 });
 for (const key of timingKeys) $(key).addEventListener('input', () => {
   // Keep the summary honest while editing, without interrupting incomplete input.
   if (timingKeys.every(name => $(name).checkValidity()) && readTiming()) {
-    notice(''); configure(); save();
+    applySetup();
   }
 });
 
-for (const key of ['sound', 'volume', 'cue', 'motion']) $(key).addEventListener(key === 'volume' ? 'input' : 'change', () => {
-  settings = normalizeSettings({ ...settings, sound: $('sound').checked, volume: Number($('volume').value), cue: $('cue').value, motion: $('motion').value });
+for (const key of ['sound', 'volume', 'cue', 'motion', 'showSeconds']) $(key).addEventListener(key === 'volume' ? 'input' : 'change', () => {
+  settings = normalizeSettings({ ...settings, sound: $('sound').checked, volume: Number($('volume').value), cue: $('cue').value, motion: $('motion').value, showSeconds: $('showSeconds').checked });
   document.body.dataset.motion = settings.motion;
   audio.setTone(settings.cue); audio.setVolume(settings.volume);
   if (key === 'sound') {
@@ -279,6 +321,11 @@ $('test-sound').addEventListener('click', () => {
   const epoch = audioEpoch;
   promise.then(ready => {
     if (!ready || epoch !== audioEpoch) return;
+    if (settings.pacing === 'own') {
+      audio.cue('complete');
+      notice('A quiet chime at the end. No sounds to pace your breathing.');
+      return;
+    }
     audio.cue('inhale');
     notice('Rising: breathe in. Falling: breathe out. Keep your device volume comfortable.');
     previewTimer = setTimeout(() => {
@@ -288,7 +335,7 @@ $('test-sound').addEventListener('click', () => {
 });
 
 $('reset').addEventListener('click', () => {
-  silence(); settings = { ...DEFAULTS }; configure(); notice('Gentle defaults restored.'); save();
+  silence(); settings = { ...DEFAULTS }; configure(); notice('Short, hold-free defaults restored.'); save();
   const url = new URL(location.href); url.search = ''; history.replaceState(null, '', url);
 });
 
@@ -296,7 +343,8 @@ let linkDialog;
 $('share').addEventListener('click', async () => {
   if (!readTiming()) return;
   const url = new URL(location.href); url.search = ''; url.hash = '';
-  for (const key of [...timingKeys, 'minutes']) url.searchParams.set(key, settings[key]);
+  url.searchParams.set('pacing', settings.pacing);
+  for (const key of settings.pacing === 'own' ? ['minutes'] : [...timingKeys, 'minutes']) url.searchParams.set(key, settings[key]);
   try {
     if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
     await navigator.clipboard.writeText(url.href);

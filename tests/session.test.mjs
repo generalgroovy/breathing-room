@@ -52,7 +52,7 @@ test('a tick just after readiness counts only time after the preparation', () =>
   const ready = clock.tick(3500);
   assert.equal(ready.status, 'running');
   assert.equal(ready.elapsedMs, 400);
-  assert.equal(ready.frame.phaseProgress, 0.1);
+  assert.equal(ready.frame.phaseProgress, 400 / 3000);
 });
 
 test('repeated prepare does not reset an active countdown or running breath', () => {
@@ -273,4 +273,52 @@ test('reading snapshots never advances breathing time or causes transitions', ()
   assert.equal(clock.snapshot(100000).status, 'preparing');
   assert.equal(clock.elapsedMs, 0);
   assert.equal(clock.snapshot().readyRemainingMs, 3000);
+});
+
+test('own-rhythm pause and resume preserve time without rewinding or prescribing a phase', () => {
+  const clock = new SessionClock(createPlan({ pacing: 'own', minutes: 1 }));
+  start(clock, 1000);
+  advance(clock, 11555);
+  const paused = clock.pause(11555);
+  assert.equal(paused.elapsedMs, 7555);
+  assert.equal(paused.frame.phaseId, 'natural');
+  assert.equal(paused.frame.completedCycles, 0);
+  const preparing = clock.prepare(50000);
+  assert.equal(preparing.elapsedMs, 7555);
+  assert.equal(preparing.readyRemainingMs, 3000);
+  assert.equal(preparing.frame.expansion, 0);
+  clock.tick(51000);
+  clock.tick(52000);
+  assert.equal(clock.tick(53000).elapsedMs, 7555);
+  assert.equal(clock.tick(54000).elapsedMs, 8555);
+});
+
+test('own rhythm completes naturally on its timer without any breath-count claim', () => {
+  const clock = new SessionClock(createPlan({ pacing: 'own', preset: 'box', minutes: 1 }));
+  start(clock);
+  advance(clock, 62999);
+  assert.equal(clock.status, 'running');
+  assert.equal(clock.snapshot().frame.phaseId, 'natural');
+  const done = clock.tick(63000);
+  assert.equal(done.status, 'complete');
+  assert.equal(done.completedNaturally, true);
+  assert.equal(done.elapsedMs, 60000);
+  assert.equal(done.frame.completedCycles, 0);
+  assert.equal(done.frame.cycleNumber, 0);
+  assert.equal(done.frame.complete, true);
+});
+
+test('own rhythm freezes missing time on interruption and resumes from its saved time', () => {
+  const clock = new SessionClock(createPlan({ pacing: 'own' }));
+  start(clock);
+  clock.tick(4500);
+  const interrupted = clock.tick(20000);
+  assert.equal(interrupted.status, 'paused');
+  assert.equal(interrupted.interrupted, true);
+  assert.equal(interrupted.elapsedMs, 1500);
+  const resumed = clock.prepare(30000);
+  assert.equal(resumed.elapsedMs, 1500);
+  assert.equal(resumed.interrupted, false);
+  assert.equal(resumed.frame.phaseId, 'natural');
+  assert.equal(resumed.frame.expansion, 0);
 });

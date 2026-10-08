@@ -1,21 +1,23 @@
 /** Pure timing and settings rules. The UI supplies a monotonic elapsed time. */
 export const PRESETS = Object.freeze([
-  Object.freeze({ id: 'gentle', name: 'Gentle pace', inhale: 4, holdIn: 0, exhale: 6, holdOut: 0, description: 'A comfortable inhale and a slightly longer exhale.' }),
+  Object.freeze({ id: 'easy', name: 'Easy rhythm', inhale: 3, holdIn: 0, exhale: 3, holdOut: 0, description: 'Equal time breathing in and out, without pauses.' }),
+  Object.freeze({ id: 'gentle', name: 'Longer exhale', inhale: 4, holdIn: 0, exhale: 6, holdOut: 0, description: 'A comfortable inhale and a slightly longer exhale.' }),
   Object.freeze({ id: 'even', name: 'Even rhythm', inhale: 4, holdIn: 0, exhale: 4, holdOut: 0, description: 'Equal time breathing in and out, without pauses.' }),
   Object.freeze({ id: 'box', name: 'Box breathing', inhale: 4, holdIn: 4, exhale: 4, holdOut: 4, description: 'Equal breaths and optional gentle pauses.' }),
 ]);
 
 export const DEFAULTS = Object.freeze({
-  preset: 'gentle', inhale: 4, holdIn: 0, exhale: 6, holdOut: 0,
-  minutes: 3, sound: true, volume: 25, cue: 'bell', motion: 'auto',
+  preset: 'easy', inhale: 3, holdIn: 0, exhale: 3, holdOut: 0,
+  minutes: 1, sound: true, volume: 25, cue: 'bell', motion: 'auto',
+  pacing: 'guided', showSeconds: false,
 });
 
 const TIMING_KEYS = Object.freeze(['inhale', 'holdIn', 'exhale', 'holdOut']);
 const PHASES = Object.freeze([
   { id: 'inhale', label: 'Breathe in' },
-  { id: 'holdIn', label: 'Hold gently' },
+  { id: 'holdIn', label: 'Pause after inhale' },
   { id: 'exhale', label: 'Breathe out' },
-  { id: 'holdOut', label: 'Rest gently' },
+  { id: 'holdOut', label: 'Pause after exhale' },
 ]);
 
 function settingsObject(input) {
@@ -49,15 +51,18 @@ export function normalizeSettings(input) {
   const selected = PRESETS.find(preset => preset.id === ownValue(source, 'preset')) ?? PRESETS[0];
   const result = {
     preset: selected.id,
-    inhale: boundedInteger(ownValue(source, 'inhale'), selected.inhale, 2, 10),
+    // These are product bounds, not medically validated safety thresholds.
+    inhale: boundedInteger(ownValue(source, 'inhale'), selected.inhale, 2, 6),
     holdIn: boundedInteger(ownValue(source, 'holdIn'), selected.holdIn, 0, 4),
-    exhale: boundedInteger(ownValue(source, 'exhale'), selected.exhale, 2, 10),
+    exhale: boundedInteger(ownValue(source, 'exhale'), selected.exhale, 2, 6),
     holdOut: boundedInteger(ownValue(source, 'holdOut'), selected.holdOut, 0, 4),
     minutes: boundedInteger(ownValue(source, 'minutes'), DEFAULTS.minutes, 1, 20),
     sound: DEFAULTS.sound,
     volume: boundedInteger(ownValue(source, 'volume'), DEFAULTS.volume, 0, 60),
     cue: DEFAULTS.cue,
     motion: DEFAULTS.motion,
+    pacing: DEFAULTS.pacing,
+    showSeconds: DEFAULTS.showSeconds,
   };
   const sound = ownValue(source, 'sound');
   if (typeof sound === 'boolean') result.sound = sound;
@@ -65,6 +70,10 @@ export function normalizeSettings(input) {
   if (cue === 'bell' || cue === 'soft') result.cue = cue;
   const motion = ownValue(source, 'motion');
   if (motion === 'auto' || motion === 'still') result.motion = motion;
+  const pacing = ownValue(source, 'pacing');
+  if (pacing === 'guided' || pacing === 'own') result.pacing = pacing;
+  const showSeconds = ownValue(source, 'showSeconds');
+  if (typeof showSeconds === 'boolean') result.showSeconds = showSeconds;
   // The name always describes the actual rhythm, including after an import.
   result.preset = PRESETS.find(preset => TIMING_KEYS.every(key => preset[key] === result[key]))?.id ?? 'custom';
   return result;
@@ -72,6 +81,10 @@ export function normalizeSettings(input) {
 
 export function createPlan(input) {
   const settings = normalizeSettings(input);
+  const requestedMs = settings.minutes * 60_000;
+  if (settings.pacing === 'own') {
+    return { settings, phases: [], cycleMs: 0, cycles: 0, durationMs: requestedMs, requestedMs };
+  }
   const phases = [];
   let cycleMs = 0;
   for (const phase of PHASES) {
@@ -81,7 +94,6 @@ export function createPlan(input) {
     cycleMs += seconds * 1000;
     phases.push({ ...phase, seconds, startMs, endMs: cycleMs });
   }
-  const requestedMs = settings.minutes * 60_000;
   // Finish the current whole breath instead of cutting off its exhale.
   const cycles = Math.ceil(requestedMs / cycleMs);
   return { settings, phases, cycleMs, cycles, durationMs: cycles * cycleMs, requestedMs };
@@ -102,14 +114,23 @@ export function frameAt(plan, elapsed) {
       cycleNumber: plan.cycles, completedCycles: plan.cycles, expansion: 0,
     };
   }
+  if (plan.settings.pacing === 'own') {
+    return {
+      complete: false, phaseId: 'natural', label: 'Breathe at your own pace', phaseIndex: -1,
+      phaseProgress: 0, phaseRemainingMs: 0, remainingMs, elapsedMs,
+      cycleNumber: 0, completedCycles: 0, expansion: 0,
+    };
+  }
   const completedCycles = Math.floor(elapsedMs / plan.cycleMs);
   const cycleElapsedMs = elapsedMs % plan.cycleMs;
   const phaseIndex = plan.phases.findIndex(phase => cycleElapsedMs < phase.endMs);
   const phase = plan.phases[phaseIndex];
   const phaseProgress = (cycleElapsedMs - phase.startMs) / (phase.seconds * 1000);
-  const expansion = phase.id === 'inhale' ? phaseProgress
+  // Ease the visual at each turning point; it does not represent lung volume.
+  const easedProgress = phaseProgress === 0.5 ? 0.5 : (1 - Math.cos(Math.PI * phaseProgress)) / 2;
+  const expansion = phase.id === 'inhale' ? easedProgress
     : phase.id === 'holdIn' ? 1
-    : phase.id === 'exhale' ? 1 - phaseProgress
+    : phase.id === 'exhale' ? 1 - easedProgress
     : 0;
   return {
     complete: false, phaseId: phase.id, label: phase.label, phaseIndex,
@@ -121,6 +142,7 @@ export function frameAt(plan, elapsed) {
 
 export function restartCycleAt(plan, elapsed) {
   const elapsedMs = boundedElapsed(elapsed, plan.durationMs);
+  if (plan.settings.pacing === 'own') return elapsedMs;
   return Math.floor(elapsedMs / plan.cycleMs) * plan.cycleMs;
 }
 

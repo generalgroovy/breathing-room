@@ -6,7 +6,11 @@ test('safe defaults are independent settings objects', () => {
   assert.deepEqual(normalizeSettings(), DEFAULTS);
   const changed = normalizeSettings();
   changed.inhale = 9;
-  assert.equal(normalizeSettings().inhale, 4);
+  assert.equal(normalizeSettings().inhale, 3);
+  assert.equal(DEFAULTS.preset, 'easy');
+  assert.equal(DEFAULTS.minutes, 1);
+  assert.equal(DEFAULTS.pacing, 'guided');
+  assert.equal(DEFAULTS.showSeconds, false);
   assert.ok(Object.isFrozen(DEFAULTS));
   assert.ok(PRESETS.every(Object.isFrozen));
 });
@@ -20,34 +24,48 @@ test('named presets supply missing durations and names follow actual timings', (
   assert.equal(normalizeSettings({ preset: 'gentle', exhale: 4 }).preset, 'even');
   assert.equal(normalizeSettings({ preset: 'box', holdIn: 0, holdOut: 0 }).preset, 'even');
   assert.equal(normalizeSettings({ inhale: 7 }).preset, 'custom');
-  assert.equal(normalizeSettings({ preset: 'unknown' }).preset, 'gentle');
+  assert.equal(normalizeSettings({ preset: 'unknown' }).preset, 'easy');
 });
 
 test('numeric controls are bounded and rounded without coercing strings', () => {
   const settings = normalizeSettings({ inhale: -9, holdIn: 99, exhale: 90, holdOut: -2, minutes: 40, volume: 80 });
-  assert.deepEqual([settings.inhale, settings.holdIn, settings.exhale, settings.holdOut, settings.minutes, settings.volume], [2, 4, 10, 0, 20, 60]);
+  assert.deepEqual([settings.inhale, settings.holdIn, settings.exhale, settings.holdOut, settings.minutes, settings.volume], [2, 4, 6, 0, 20, 60]);
   assert.equal(normalizeSettings({ minutes: 0 }).minutes, 1);
   assert.equal(normalizeSettings({ volume: -9 }).volume, 0);
   assert.equal(normalizeSettings({ inhale: 2.8 }).inhale, 3);
-  assert.equal(normalizeSettings({ inhale: '7' }).inhale, 4);
+  assert.equal(normalizeSettings({ inhale: '7' }).inhale, 3);
   assert.equal(normalizeSettings({ volume: null }).volume, 25);
-  assert.equal(normalizeSettings({ minutes: false }).minutes, 3);
+  assert.equal(normalizeSettings({ minutes: false }).minutes, 1);
 });
 
-test('boolean, cue and motion choices only accept explicit supported values', () => {
-  const settings = normalizeSettings({ sound: false, volume: 0, cue: 'soft', motion: 'still' });
+test('boolean, cue, pacing and display choices only accept explicit supported values', () => {
+  const settings = normalizeSettings({ sound: false, volume: 0, cue: 'soft', motion: 'still', pacing: 'own', showSeconds: true });
   assert.deepEqual([settings.sound, settings.volume, settings.cue, settings.motion], [false, 0, 'soft', 'still']);
   assert.equal(normalizeSettings({ sound: 'false' }).sound, true);
   assert.equal(normalizeSettings({ sound: 0 }).sound, true);
   assert.equal(normalizeSettings({ cue: '<script>', motion: 'fast' }).cue, 'bell');
   assert.equal(normalizeSettings({ cue: '<script>', motion: 'fast' }).motion, 'auto');
+  assert.equal(settings.pacing, 'own');
+  assert.equal(settings.showSeconds, true);
+  assert.equal(normalizeSettings({ pacing: 'automatic' }).pacing, 'guided');
+  for (const showSeconds of ['true', 1, null, {}, undefined]) assert.equal(normalizeSettings({ showSeconds }).showSeconds, false);
 });
 
 test('saved settings JSON round trips, including silent preferences', () => {
-  const settings = normalizeSettings({ inhale: 3, holdIn: 1, exhale: 8, holdOut: 2, minutes: 7, sound: false, volume: 0, cue: 'soft', motion: 'still' });
+  const settings = normalizeSettings({ inhale: 3, holdIn: 1, exhale: 6, holdOut: 2, minutes: 7, sound: false, volume: 0, cue: 'soft', motion: 'still', pacing: 'own', showSeconds: true });
   assert.deepEqual(normalizeSettings(JSON.stringify(settings)), settings);
   assert.deepEqual(normalizeSettings(JSON.stringify({ preset: 'box' })), normalizeSettings({ preset: 'box' }));
   assert.equal(normalizeSettings('{"preset":"even","unrelated":"ignored"}').preset, 'even');
+});
+
+test('older settings keep supported preferences while timings adopt current product bounds', () => {
+  const old = JSON.stringify({ preset: 'custom', inhale: 10, exhale: 9, holdIn: 4, holdOut: 3, minutes: 7, sound: false, volume: 0, cue: 'soft', motion: 'still' });
+  const migrated = normalizeSettings(old);
+  assert.deepEqual([migrated.inhale, migrated.exhale, migrated.holdIn, migrated.holdOut], [6, 6, 4, 3]);
+  assert.deepEqual([migrated.minutes, migrated.sound, migrated.volume, migrated.cue, migrated.motion], [7, false, 0, 'soft', 'still']);
+  assert.equal(migrated.preset, 'custom');
+  assert.equal(migrated.pacing, 'guided');
+  assert.equal(migrated.showSeconds, false);
 });
 
 test('damaged storage, unsupported types and unsafe properties cannot break defaults', () => {
@@ -77,13 +95,13 @@ test('nonfinite controls fall back to safe settings and produce no invalid timin
 test('zero holds are omitted and phase boundaries share a continuous cycle', () => {
   const plan = createPlan();
   assert.deepEqual(plan.phases, [
-    { id: 'inhale', label: 'Breathe in', seconds: 4, startMs: 0, endMs: 4000 },
-    { id: 'exhale', label: 'Breathe out', seconds: 6, startMs: 4000, endMs: 10000 },
+    { id: 'inhale', label: 'Breathe in', seconds: 3, startMs: 0, endMs: 3000 },
+    { id: 'exhale', label: 'Breathe out', seconds: 3, startMs: 3000, endMs: 6000 },
   ]);
-  assert.equal(plan.cycleMs, 10000);
-  assert.equal(plan.cycles, 18);
-  assert.equal(plan.durationMs, 180000);
-  assert.equal(plan.requestedMs, 180000);
+  assert.equal(plan.cycleMs, 6000);
+  assert.equal(plan.cycles, 10);
+  assert.equal(plan.durationMs, 60000);
+  assert.equal(plan.requestedMs, 60000);
 });
 
 test('every session ends on a whole cycle at or after its requested duration', () => {
@@ -96,12 +114,12 @@ test('every session ends on a whole cycle at or after its requested duration', (
       assert.equal(plan.cycles, plan.durationMs / plan.cycleMs);
     }
   }
-  assert.equal(createPlan({ preset: 'even' }).durationMs, 184000);
-  assert.equal(createPlan({ preset: 'box' }).durationMs, 192000);
+  assert.equal(createPlan({ preset: 'even', minutes: 3 }).durationMs, 184000);
+  assert.equal(createPlan({ preset: 'box', minutes: 3 }).durationMs, 192000);
 });
 
 test('inhale and exhale expansion are continuous and exact at phase boundaries', () => {
-  const plan = createPlan();
+  const plan = createPlan({ preset: 'gentle', minutes: 3 });
   const cases = [
     [0, 'inhale', 0, 4000, 1], [2000, 'inhale', 0.5, 2000, 1],
     [4000, 'exhale', 1, 6000, 1], [7000, 'exhale', 0.5, 3000, 1],
@@ -129,8 +147,80 @@ test('hold phases keep their appropriate expansion and end on exact boundaries',
     assert.equal(frame.phaseId, phase);
     assert.equal(frame.expansion, expansion);
   }
-  assert.equal(frameAt(plan, 4000).label, 'Hold gently');
-  assert.equal(frameAt(plan, 12000).label, 'Rest gently');
+  assert.equal(frameAt(plan, 4000).label, 'Pause after inhale');
+  assert.equal(frameAt(plan, 12000).label, 'Pause after exhale');
+});
+
+test('visual easing has gentle turning points without changing phase durations', () => {
+  const plan = createPlan();
+  const firstQuarter = frameAt(plan, 750);
+  const midpoint = frameAt(plan, 1500);
+  const thirdQuarter = frameAt(plan, 2250);
+  assert.equal(firstQuarter.phaseProgress, 0.25);
+  assert.ok(firstQuarter.expansion > 0 && firstQuarter.expansion < 0.25);
+  assert.equal(midpoint.expansion, 0.5);
+  assert.ok(thirdQuarter.expansion > 0.75 && thirdQuarter.expansion < 1);
+  assert.equal(frameAt(plan, 4500).expansion, 0.5);
+  assert.ok(frameAt(plan, 1).expansion < 0.000001);
+  assert.ok(Math.abs(frameAt(plan, 2999).expansion - frameAt(plan, 3000).expansion) < 0.000001);
+  assert.ok(Math.abs(frameAt(plan, 5999).expansion - frameAt(plan, 6000).expansion) < 0.000001);
+  assert.equal(frameAt(plan, 3000).phaseId, 'exhale');
+  assert.equal(frameAt(plan, 6000).phaseId, 'inhale');
+  let previous = 0;
+  for (let elapsed = 0; elapsed <= 3000; elapsed += 10) {
+    const expansion = frameAt(plan, elapsed).expansion;
+    assert.ok(expansion >= previous);
+    previous = expansion;
+  }
+});
+
+test('own rhythm has exact requested duration with no prescribed phases or cycles', () => {
+  for (const minutes of [1, 3, 7, 20]) {
+    const plan = createPlan({ pacing: 'own', preset: 'box', minutes });
+    assert.deepEqual(plan.phases, []);
+    assert.equal(plan.cycleMs, 0);
+    assert.equal(plan.cycles, 0);
+    assert.equal(plan.durationMs, minutes * 60000);
+    assert.equal(plan.requestedMs, plan.durationMs);
+    assert.equal(plan.settings.pacing, 'own');
+    assert.equal(plan.settings.preset, 'box');
+  }
+});
+
+test('own-rhythm frames never prescribe movement, phases or measured breaths', () => {
+  const plan = createPlan({ pacing: 'own', minutes: 3 });
+  for (const elapsedMs of [0, 1, 4000, 74555.5, 179999]) {
+    assert.deepEqual(frameAt(plan, elapsedMs), {
+      complete: false, phaseId: 'natural', label: 'Breathe at your own pace', phaseIndex: -1,
+      phaseProgress: 0, phaseRemainingMs: 0, remainingMs: 180000 - elapsedMs, elapsedMs,
+      cycleNumber: 0, completedCycles: 0, expansion: 0,
+    });
+  }
+});
+
+test('own rhythm finishes exactly on time without invented breath counts', () => {
+  const plan = createPlan({ pacing: 'own', preset: 'box', minutes: 1 });
+  assert.equal(frameAt(plan, 59999).complete, false);
+  const done = frameAt(plan, 60000);
+  assert.equal(done.complete, true);
+  assert.equal(done.label, 'Breathe naturally');
+  assert.equal(done.remainingMs, 0);
+  assert.equal(done.elapsedMs, 60000);
+  assert.equal(done.cycleNumber, 0);
+  assert.equal(done.completedCycles, 0);
+  assert.equal(done.expansion, 0);
+  assert.deepEqual(frameAt(plan, Infinity), done);
+});
+
+test('own-rhythm resume preserves actual elapsed time and clamps malformed input', () => {
+  const plan = createPlan({ pacing: 'own' });
+  assert.equal(restartCycleAt(plan, 17555.5), 17555.5);
+  assert.equal(restartCycleAt(plan, 60000), 60000);
+  assert.equal(restartCycleAt(plan, Infinity), 60000);
+  for (const elapsed of [undefined, null, NaN, -Infinity, -1, '3000', Symbol('bad')]) {
+    assert.equal(restartCycleAt(plan, elapsed), 0);
+    assert.deepEqual(frameAt(plan, elapsed), frameAt(plan, 0));
+  }
 });
 
 test('large elapsed jumps resolve directly instead of drifting through missed phases', () => {
@@ -182,9 +272,9 @@ test('resume rewinds any partial phase to the current whole breath, never a part
 test('frame invariants hold for short, long, asymmetric and single-hold cycles', () => {
   for (const settings of [
     { inhale: 2, exhale: 2, holdIn: 0, holdOut: 0, minutes: 1 },
-    { inhale: 10, exhale: 10, holdIn: 4, holdOut: 4, minutes: 20 },
-    { inhale: 3, exhale: 7, holdIn: 2, holdOut: 0, minutes: 2 },
-    { inhale: 2, exhale: 9, holdIn: 0, holdOut: 3, minutes: 3 },
+    { inhale: 6, exhale: 6, holdIn: 4, holdOut: 4, minutes: 20 },
+    { inhale: 3, exhale: 5, holdIn: 2, holdOut: 0, minutes: 2 },
+    { inhale: 2, exhale: 6, holdIn: 0, holdOut: 3, minutes: 3 },
   ]) {
     const plan = createPlan(settings);
     for (let elapsed = 0; elapsed < plan.durationMs; elapsed += 137.25) {

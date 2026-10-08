@@ -1,25 +1,28 @@
 # Breathing Room
 
-A little room to breathe: a gentle, customizable breathing guide with soft audio cues. Choose a rhythm, press **Start breathing**, and follow the expanding guide or the text.
+A little room to breathe: an adjustable breathing guide with soft audio cues. Try a short guided session or choose **Own rhythm** for quiet time without a breathing pace to follow.
 
 **[Open the app](https://generalgroovy.github.io/breathing-room/)**
 
 ## Make the practice comfortable
 
-- **Gentle, Even or Box** rhythms, plus custom inhale/exhale times of 2–10 seconds and optional pauses of 0–4 seconds.
-- **1–20 minute sessions** that finish after a complete breath. Pause, resume or finish whenever needed.
-- **Quiet synthesized cues:** a rising inhale, falling exhale and subtle pause/completion tones. Choose Warm bell or Soft tone, adjust volume, or practise silently.
-- **A readable mobile layout**, keyboard controls, phase announcements and a still visual option that also respects reduced-motion preferences.
+- **Easy by default:** one minute, 3 seconds in and 3 seconds out, with no holds. Even (4 in / 4 out) and Long out (4 in / 6 out) are alternatives, not targets to progress toward.
+- **Own rhythm:** an unpaced timer with a still guide and no inhale, exhale or hold cues. A completion chime follows your sound preference.
+- **Make it yours:** optional Box rhythm and custom inhale/exhale times of 2–6 seconds, with pauses of 0–4 seconds. These are product limits, not medically validated ranges.
+- **1–20 minute sessions.** Guided sessions finish a complete pattern; Own rhythm ends with the timer. **Breathe freely** stops the cues and freezes the guide. Resume when ready, or finish; editing a paused rhythm starts a new session.
+- **Quiet synthesized cues** for guided practice: a rising inhale, falling exhale and subtle pause/completion tones. Choose Warm bell or Soft tone, adjust volume, or practise silently.
+- **A readable mobile layout**, keyboard controls, phase announcements and a still display option that respects reduced motion. Phase seconds are hidden unless you choose to show them.
 - **Settings saved on your device** and a session link for sharing a rhythm. No accounts, analytics, remote fonts or runtime dependencies.
 
-Start with a short session and no pauses. Breathe comfortably rather than forcing a large breath; stop and return to natural breathing if dizzy or uncomfortable. This app supports a personal relaxation practice and does not measure health or provide treatment.
+Let the guide fit your breathing. You do not need a bigger breath, a slower pace or a longer hold. If matching the guide feels uncomfortable, choose **Breathe freely**, switch to **Own rhythm**, or stop. The orb is a timing illustration, not a target lung volume or a measurement of your breathing.
 
 ## Benefits and sources
 
-Gentle breathing practice may help some people feel calmer and manage everyday stress. Effects vary, and research on specific methods has limitations; this app has not been clinically evaluated. The timings are adjustable guides, not a prescribed dose or a promise of a health outcome.
+Breathing practice may help some people manage everyday stress, but research does not establish one best pace or inhale/exhale ratio for everyone. This app is informed by published guidance and research; it has **not been clinically evaluated or professionally medically reviewed**. It does not monitor oxygen, heart rate or carbon dioxide, and cannot establish whether an exercise suits an individual.
 
 - [NHS: Breathing exercises for stress](https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/) — comfortable, unforced breathing and regular practice.
 - [NCCIH: Relaxation techniques](https://www.nccih.nih.gov/health/relaxation-techniques-what-you-need-to-know) — the evidence, its limitations, and when to discuss symptoms or complementary approaches with a health professional.
+- [Evidence and design notes](HEALTH.md) — primary research, comfort choices and the limits of the app's claims.
 
 ## Run and check
 
@@ -41,7 +44,7 @@ The build copies exactly nine runtime files into `dist/`. GitHub Actions checks 
 
 | File | Responsibility |
 | --- | --- |
-| `model.mjs` | Normalize settings, build whole-breath plans and calculate the current phase from elapsed time. |
+| `model.mjs` | Normalize settings, build guided or unpaced plans and calculate the current phase and visual timing from elapsed time. |
 | `session.mjs` | Session lifecycle and monotonic timing, independent of rendering. |
 | `audio.mjs` | `SoftAudio`: explicit-gesture `unlock()`, `cue(phaseId)`, `setVolume(0..60)`, `setTone('soft'\|'bell')`, `stop()` and `dispose()`. |
 | `screen.mjs` | `StayAwake`: best-effort `acquire()` during a visible session and `release()` when it stops or pauses; pending requests cannot outlive that session. |
