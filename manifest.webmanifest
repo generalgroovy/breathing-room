@@ -1,0 +1,15 @@
+{
+  "name": "Breathing Room",
+  "short_name": "Breathe",
+  "description": "Gentle guided breathing with your rhythm and soft sound cues.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4ee",
+  "theme_color": "#f6f4ee",
+  "lang": "en",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
