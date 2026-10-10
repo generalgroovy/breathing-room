@@ -1,5 +1,11 @@
 # Release checks
 
+## 1.3.0 — direct controls and session states
+
+The interface uses a single breathing circle, flat surfaces and specific labels: Adjust timing, Safety & evidence, Paused, Session complete and Session stopped. Decorative rings and slogans were removed. Existing technique timing, research links, comfort guidance, optional pauses, audio cues and reduced-motion behavior are unchanged.
+
+All 74 automated tests, module checks and the nine-file build pass. Rendered acceptance and exact public-file verification are recorded separately in the release evidence for 10 October 2026.
+
 ## 1.2.0 — technique selection and research context
 
 Checked on 8 October 2026. The earlier results below are preserved as historical evidence.

@@ -1,6 +1,6 @@
 # Breathing Room
 
-A little room to breathe: an adjustable breathing guide with soft audio cues. Choose a guided pattern, observe your natural breath with **Mindful**, or explore the self-paced **Gentle sigh** adaptation.
+An adjustable breathing guide with optional audio cues. Choose a timed pattern, observe your natural breath with **Mindful**, or use the self-paced **Gentle sigh** adaptation.
 
 **[Open the app](https://generalgroovy.github.io/breathing-room/)**
 
@@ -10,13 +10,13 @@ A little room to breathe: an adjustable breathing guide with soft audio cues. Ch
 - **Mindful:** notice your natural breathing and gently return attention when it wanders. The timer does not prescribe a rhythm.
 - **Gentle sigh:** a self-paced adaptation—a gentle inhale, a small second top-up if comfortable, then an easy longer exhale. Take ordinary breaths whenever needed; there are no prescribed phase seconds or maximum-volume instructions. The app does not claim the outcomes of the original cyclic-sighing research for this adaptation.
 - **A still guide for self-paced techniques**, with no inhale, exhale or hold cues. A completion chime follows your sound preference. Each selected technique has a concise **Guide & research** section.
-- **Make it yours:** custom guided inhale/exhale times of 2–6 seconds, with optional pauses of 0–4 seconds. These are product limits, not medically validated ranges.
-- **1–20 minute sessions, starting at one minute.** Guided sessions finish a complete pattern; self-paced sessions end with the timer. The one-minute default is a convenient starting duration, not a research dose. **Breathe freely** stops the cues and freezes the guide. Resume when ready, or finish; editing a paused rhythm starts a new session.
+- **Adjust timing:** custom guided inhale/exhale times of 2–6 seconds, with optional pauses of 0–4 seconds. These are product limits, not medically validated ranges.
+- **1–20 minute sessions, starting at one minute.** Guided sessions finish a complete pattern; self-paced sessions end with the timer. The one-minute default is a convenient starting duration, not a research dose. **Pause guide** stops the cues and freezes the guide. Resume when ready, or finish; editing a paused rhythm starts a new session.
 - **Quiet synthesized cues** for guided practice: a rising inhale, falling exhale and subtle pause/completion tones. Choose Warm bell or Soft tone, adjust volume, or practise silently.
 - **A readable mobile layout**, keyboard controls, phase announcements and a still display option that respects reduced motion. Phase seconds are hidden unless you choose to show them.
 - **Settings saved on your device** and a session link for sharing a rhythm. No accounts, analytics, remote fonts or runtime dependencies.
 
-Let the guide fit your breathing. You do not need a bigger breath, a slower pace or a longer hold. If matching the guide feels uncomfortable, choose **Breathe freely**, switch to **Mindful**, or stop. The orb is a timing illustration, not a target lung volume or a measurement of your breathing.
+Let the guide fit your breathing. You do not need a bigger breath, a slower pace or a longer hold. If matching the guide feels uncomfortable, choose **Pause guide**, switch to **Mindful**, or stop. The orb is a timing illustration, not a target lung volume or a measurement of your breathing.
 
 Saved legacy Easy 3/3 starter settings migrate once to Slow & even 5/5. Other selected rhythms and device preferences remain; an explicit 3/3 shared link still uses 3/3. Custom timing is still available.
 

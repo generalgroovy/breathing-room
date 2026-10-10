@@ -11,7 +11,7 @@
   --accent-dark: #164838;
   --sage: #e9eee2;
   --peach: #efd8bd;
-  --radius: 24px;
+  --radius: 12px;
   font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -38,21 +38,17 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline-offset
 .site-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 28px; }
 .brand { display: inline-flex; align-items: center; gap: 11px; color: var(--ink); font-weight: 650; font-size: 19px; letter-spacing: -.55px; text-decoration: none; white-space: nowrap; }
 .brand-mark { flex: 0 0 auto; }
-.tagline { color: var(--muted); margin: 0; font-size: 13px; }
 .practice-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
-.practice-card { position: relative; background: var(--card); border: 1px solid #e6e7dc; border-radius: var(--radius); padding: 25px 28px 23px; text-align: center; box-shadow: 0 9px 30px -21px #34463538; }
+.practice-card { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 25px 28px 23px; text-align: center; }
 .session-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 11px; letter-spacing: .1px; min-height: 20px; }
 .session-time { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .session-time svg { fill: none; stroke: currentColor; stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; }
 #session-clock { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
 .breath-scene { width: 260px; height: 260px; position: relative; margin: 25px auto 15px; display: grid; place-items: center; isolation: isolate; }
-.orb-orbit { position: absolute; inset: 0; border: 1px solid #d7e0cd; border-radius: 50%; }
-.orb-orbit::after { content: ""; position: absolute; inset: 16px; border: 1px solid #e6eadf; border-radius: 50%; }
-#breath-orb { position: absolute; inset: 12px; border-radius: 50%; overflow: hidden; transform: scale(calc(.65 + var(--expansion, 0) * .35)); background: radial-gradient(ellipse at 36% 22%, #f6e9cb 0%, #e6dcba 29%, #b4c6a3 66%, #8eac94 100%); box-shadow: inset 0 -12px 26px #668d7838, 0 12px 40px -14px #8ba98360; will-change: transform; }
-.orb-light { position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(ellipse at 35% 25%, #fffaf46e, transparent 53%); }
+#breath-orb { position: absolute; inset: 12px; border-radius: 50%; transform: scale(calc(.65 + var(--expansion, 0) * .35)); background: #b4c9b2; will-change: transform; }
 .phase-count { position: relative; z-index: 1; font-size: 46px; line-height: 1; font-weight: 400; letter-spacing: -2px; color: #24483d; font-variant-numeric: tabular-nums; }
 .guide-copy { min-height: 75px; }
-h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: clamp(25px, 3vw, 33px); line-height: 1.22; letter-spacing: -.8px; margin: 0 0 8px; }
+h1 { font-weight: 550; font-size: clamp(25px, 3vw, 30px); line-height: 1.22; letter-spacing: -.5px; margin: 0 0 8px; }
 #guide-note { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
 progress { display: block; appearance: none; -webkit-appearance: none; width: 100%; height: 3px; margin: 21px 0 20px; border: 0; overflow: hidden; border-radius: 3px; background: #ecefe6; color: #7c9b80; }
 progress::-webkit-progress-bar { background: #ecefe6; }
@@ -154,8 +150,6 @@ button:disabled { opacity: .6; }
 #breath-orb { transition: opacity .2s ease; }
 body[data-pacing="guided"][data-status="preparing"] #breath-orb { opacity: 0; }
 body[data-status="paused"] #breath-orb, body[data-status="complete"] #breath-orb { opacity: .7; }
-body[data-status="paused"] .orb-orbit { border-style: dashed; }
-body[data-status="complete"] .orb-orbit { border-color: #9bb395; }
 body[data-motion="still"] #breath-orb, body[data-motion="reduced"] #breath-orb, body.reduce-motion #breath-orb { transform: scale(.85); will-change: auto; }
 body[data-status="paused"] #breath-orb, body[data-status="complete"] #breath-orb { will-change: auto; }
 body[data-pacing="own"] #breath-orb { transform: scale(.8); will-change: auto; }
@@ -173,12 +167,10 @@ body[data-pacing="own"] #phase-count { display: none; }
   .site-header { padding-bottom: 15px; gap: 7px; align-items: flex-start; flex-direction: column; }
   .brand { font-size: 18px; gap: 8px; }
   .brand-mark { width: 28px; height: 28px; }
-  .tagline { font-size: 11px; margin-left: 36px; margin-top: -5px; }
   .practice-layout { display: block; }
-  .practice-card { padding: 16px 19px 15px; border-radius: 20px; }
+  .practice-card { padding: 16px 19px 15px; }
   .session-meta { font-size: 11px; }
   .breath-scene { width: 163px; height: 163px; margin: 13px auto 11px; }
-  .orb-orbit::after { inset: 11px; }
   #breath-orb { inset: 7px; }
   .phase-count { font-size: 36px; }
   .guide-copy { min-height: 58px; }

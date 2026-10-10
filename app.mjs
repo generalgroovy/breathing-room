@@ -18,7 +18,7 @@ try {
     settings = restoreSettings(saved);
     migratedStarter = normalizeSettings(saved).preset === 'easy' && settings.preset === 'slow';
     if (migratedStarter) initialNotice = 'The starting rhythm is now slower: 5 seconds in, 5 out. Adjust it whenever you like.';
-    try { JSON.parse(saved); } catch { initialNotice = 'Your saved settings could not be read. A gentle rhythm is ready.'; }
+    try { JSON.parse(saved); } catch { initialNotice = 'Saved settings could not be read. Default timing restored.'; }
   }
 } catch { storageOK = false; }
 
@@ -65,7 +65,7 @@ const techniqueNotes = {
   },
   box: {
     description: 'Four equal steps, with optional pauses between breaths.',
-    guidance: 'Breathe in for four, pause for four, breathe out for four, then pause for four. Breathe sooner if needed. “Make it yours” lets you shorten or remove the pauses.',
+    guidance: 'Breathe in for four, pause for four, breathe out for four, then pause for four. Breathe sooner if needed. “Adjust timing” lets you shorten or remove the pauses.',
     evidence: 'Four-second square breathing appears in NHS guidance. The research trial used five minutes daily and adjusted phase lengths to participants; four seconds is not a universal prescription.',
     links: [['NHS square-breathing guide', 'https://www.rnoh.nhs.uk/patients-and-visitors/patient-information-guides/relaxation-techniques-pain-management'], structuredStudy],
   },
@@ -83,7 +83,7 @@ const techniqueNotes = {
   },
   custom: {
     description: 'Your own timing. Keep every breath comfortable.',
-    guidance: 'Adjust the times in “Make it yours”. Pauses are optional. Let any cue pass or use Mindful for ordinary breathing with no pace to match.',
+    guidance: 'Use “Adjust timing” to change the times. Pauses are optional. Let any cue pass or use Mindful for ordinary breathing with no pace to match.',
     evidence: 'These custom timings have no specific evidence claim. No medical or meditation standard makes one pace right for everyone, and the controls are not validated safety limits.',
     links: [nhsBreathing],
   },
@@ -181,7 +181,7 @@ function configure() {
   if (settings.holdOut) parts.push(`${settings.holdOut}s hold after out`);
   const cyclesPerMinute = plan.cycleMs ? Number((60_000 / plan.cycleMs).toFixed(2)) : 0;
   $('pattern-summary').textContent = settings.pacing === 'own' ? '' : parts.join(' · ') + ` · ${cyclesPerMinute} guide cycles/min`;
-  $('duration-note').textContent = settings.pacing === 'own' ? 'No breathing targets. A quiet moment at your own pace.' : plan.durationMs === plan.requestedMs
+  $('duration-note').textContent = settings.pacing === 'own' ? 'Timer only; no breathing pace to match.' : plan.durationMs === plan.requestedMs
     ? 'Ends after a complete breath.'
     : `${formatTime(plan.durationMs)} total, so your last breath can finish.`;
   audio.setTone(settings.cue);
@@ -216,7 +216,7 @@ function render(snapshot) {
   $('pause').hidden = !active;
   $('stop').hidden = !active;
   $('result').hidden = status !== 'complete';
-  $('pause').textContent = status === 'paused' ? (ownPace ? 'Continue' : 'Resume guide') : (ownPace ? 'Pause timer' : 'Breathe freely');
+  $('pause').textContent = status === 'paused' ? (ownPace ? 'Resume timer' : 'Resume guide') : (ownPace ? 'Pause timer' : 'Pause guide');
   $('progress').value = elapsedMs / plan.durationMs;
   $('session-clock').textContent = formatTime(frame.remainingMs);
   $('cycle-count').textContent = ownPace ? 'Your own rhythm' : settings.showSeconds && status === 'running' ? `Guide cycle ${frame.cycleNumber} of ${plan.cycles}` : 'Follow only if comfortable';
@@ -224,11 +224,11 @@ function render(snapshot) {
   if (status === 'running' && !ownPace) orb.style.setProperty('--expansion', frame.expansion);
   else if (status === 'idle') orb.style.setProperty('--expansion', 0);
   orb.dataset.phase = status === 'running' ? frame.phaseId : status;
-  let label = 'Find a comfortable seat.';
+  let label = 'Ready';
   let guide = ownPace ? (settings.practice === 'sigh' ? 'Gentle inhale, small top-up, easy longer exhale. Your own pace.' : 'Notice your breathing without trying to change it.') : 'Keep breaths easy. Join the guide only if comfortable.';
   let count = '';
   if (status === 'preparing') {
-    label = 'Settle in';
+    label = 'Starting';
     guide = ownPace ? 'Nothing to match. Breathe in your own way.' : 'Breathe normally. Join any inhale when it feels easy.';
     count = settings.showSeconds && !ownPace ? Math.max(1, Math.ceil(readyRemainingMs / 1000)) : '';
   } else if (status === 'running' && ownPace) {
@@ -251,13 +251,13 @@ function render(snapshot) {
       if (settings.sound && settings.volume > 0 && audio.ready) audio.cue(frame.phaseId);
     }
   } else if (status === 'paused') {
-    label = 'Take your time.';
-    guide = 'Breathe in your own way. Continue or adjust the rhythm when comfortable.';
+    label = 'Paused';
+    guide = 'Breathe normally. Resume or adjust the timing.';
   } else if (status === 'complete') {
-    label = completedNaturally ? 'A little more space.' : 'Come back to your own rhythm.';
+    label = completedNaturally ? 'Session complete' : 'Session stopped';
     guide = 'Let your breathing return to its natural pace.';
-    $('result-summary').textContent = elapsedMs < 1000 ? 'Whenever you’re ready, there’s room for another breath.'
-      : `${formatTime(elapsedMs)} ${ownPace ? 'at your own pace' : 'with the guide'}${completedNaturally ? ' completed.' : '. You can stop whenever you need to.'}`;
+    $('result-summary').textContent = elapsedMs < 1000 ? 'No practice time recorded.'
+      : `${formatTime(elapsedMs)} ${ownPace ? 'at your own pace' : 'with the guide'}.`;
   }
   $('phase-label').textContent = label;
   $('guide-note').textContent = guide;

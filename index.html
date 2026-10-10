@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f4ee">
-  <meta name="description" content="A little room to breathe. Gentle guided breathing with adjustable rhythms, soft sound cues, and a calm, mobile-friendly guide.">
-  <title>Breathing Room — a little room to breathe</title>
+  <meta name="description" content="Guided breathing and mindful practice with adjustable timing, optional audio cues, and links to guidance and research.">
+  <title>Breathing Room — guided breathing</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css">
@@ -19,7 +19,6 @@
         <svg class="brand-mark" viewBox="0 0 36 36" width="36" height="36" aria-hidden="true"><path d="M6 22a12 12 0 0 1 24 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 26h16M14 30h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="18" cy="17" r="5" fill="currentColor" opacity=".18"/></svg>
         <span>Breathing Room</span>
       </a>
-      <p class="tagline">A little room to breathe.</p>
     </header>
 
     <main id="main" tabindex="-1">
@@ -27,30 +26,27 @@
         <section class="practice-card" aria-labelledby="phase-label">
           <div class="session-meta">
             <span class="session-time"><svg viewBox="0 0 20 20" aria-hidden="true" width="16" height="16"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2"/></svg><span id="session-clock">01:00</span><span class="meta-word">remaining</span></span>
-            <span id="cycle-count">Ready when you are</span>
+            <span id="cycle-count">Ready</span>
           </div>
 
           <div class="breath-scene" aria-hidden="true">
-            <div class="orb-orbit"></div>
-            <div id="breath-orb" data-phase="ready" style="--expansion: 0">
-              <span class="orb-light"></span>
-            </div>
+            <div id="breath-orb" data-phase="ready" style="--expansion: 0"></div>
             <span id="phase-count" class="phase-count"></span>
           </div>
           <div class="guide-copy">
-            <h1 id="phase-label">Find a comfortable seat.</h1>
+            <h1 id="phase-label">Ready</h1>
             <p id="guide-note">Join the guide only while it feels easy.</p>
           </div>
 
           <progress id="progress" value="0" max="1" aria-label="Session progress">0%</progress>
           <div class="session-actions">
             <button class="button button-primary" id="start" type="button"><span>Start breathing</span><svg viewBox="0 0 20 20" width="19" height="19" aria-hidden="true"><path d="m7 4 7 6-7 6"/></svg></button>
-            <button class="button button-primary" id="pause" type="button" hidden>Breathe freely</button>
+            <button class="button button-primary" id="pause" type="button" hidden>Pause guide</button>
             <button class="button button-quiet" id="stop" type="button" hidden>Stop</button>
           </div>
           <div id="result" class="result" hidden>
             <p id="result-summary"></p>
-            <button class="button button-primary" id="again" type="button">Breathe again</button>
+            <button class="button button-primary" id="again" type="button">Start again</button>
           </div>
           <p class="comfort-note">Keep breaths easy. Stop if dizzy, tingly, breathless or uncomfortable.</p>
           <p class="page-open-note">Keep this page open during your session.</p>
@@ -59,7 +55,7 @@
 
         <section class="control-panel" aria-labelledby="rhythm-title">
           <div class="panel-heading">
-            <h2 id="rhythm-title">Your practice</h2>
+            <h2 id="rhythm-title">Practice</h2>
             <label class="sound-switch" for="sound">
               <input id="sound" type="checkbox" checked>
               <span class="switch-track" aria-hidden="true"><span></span></span>
@@ -94,7 +90,7 @@
             <p id="duration-note" class="detail-note">Ends after a complete breath.</p>
 
             <details id="customize" class="settings-details">
-              <summary>Make it yours <span class="summary-plus" aria-hidden="true">+</span></summary>
+              <summary>Adjust timing <span class="summary-plus" aria-hidden="true">+</span></summary>
               <div class="details-content">
                 <p class="detail-note">Choose a comfortable pace. All times are in seconds.</p>
                 <div class="timing-grid">
@@ -145,7 +141,7 @@
       </div>
 
       <details class="health-details">
-        <summary>Benefits &amp; guidance <span class="summary-plus" aria-hidden="true">+</span></summary>
+        <summary>Safety &amp; evidence <span class="summary-plus" aria-hidden="true">+</span></summary>
         <div id="health-info" class="health-content">
           <h3>Comfort comes first</h3>
           <p>Sit or lie comfortably. Keep breaths quiet and an ordinary, comfortable size. There is no lung-volume target: do not force your lungs full or empty. The orb guides timing, not breath size. Counts are optional; let any cue pass if needed. <a href="https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/" target="_blank" rel="noopener noreferrer">NHS guidance</a> and <a href="https://www.cuh.nhs.uk/patient-information/breathing-exercises-in-the-treatment-of-hyperventilation/" target="_blank" rel="noopener noreferrer">CUH breathing guidance</a>.</p>
@@ -160,7 +156,7 @@
 
     <footer class="site-footer">
       <p>Settings stay on this device. No account or tracking.</p>
-      <a href="https://github.com/generalgroovy/breathing-room" target="_blank" rel="noopener noreferrer">Made with care <span aria-hidden="true">↗</span><span class="visually-hidden"> — source code on GitHub, opens a new tab</span></a>
+      <a href="https://github.com/generalgroovy/breathing-room" target="_blank" rel="noopener noreferrer">Source code <span aria-hidden="true">↗</span><span class="visually-hidden"> on GitHub, opens a new tab</span></a>
     </footer>
   </div>
   <noscript><p class="noscript-note">Enable JavaScript to use the breathing guide. You can also practise at your own pace: breathe in gently, then breathe out comfortably.</p></noscript>
